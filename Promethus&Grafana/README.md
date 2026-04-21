@@ -1,5 +1,9 @@
 # Prometheus, Grafana and Node Exporter
 
+---
+
+-> Day 1
+
 - **What is Prometheus**
   - Prometheus is an open source linux server monitoring tool mainly used for metrics monitoring, event monitoring, alert management, etc.
   - Prometheus has changed the way of monitoring systems and that is why it has become the Top -Level project of Cloud Native Computing Foundation (CNCF).
@@ -201,3 +205,7 @@ echo "✅ Node Exporter is running at: http://<EC2-IP>:9100/metrics"
     - targets: ['localhost:9090','localhost:9100']
   - Now restart the Prometheus
     - sudo systemctl restart prometheus
+
+---
+
+-> Day 2
