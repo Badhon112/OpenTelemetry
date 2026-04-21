@@ -30,7 +30,7 @@
 
 - **Install Prometheus in Linux**
 
-```
+```bash
 #!/bin/bash
 
 set -e
@@ -97,3 +97,107 @@ echo "🌐 Access Prometheus at: http://<YOUR_EC2_PUBLIC_IP>:9090"
 echo "⚠️ Make sure port 9090 is open in Security Group"
 
 ```
+
+- Check Prometheus Version
+  $ prometheus --version
+  $ promtool --version
+
+- Prometheus configuration file
+  $ cat /etc/prometheus/prometheus.yml
+
+---
+
+- **Install Grafana in Linux**
+
+```bash
+#!/bin/bash
+
+set -e
+
+echo "🔄 Updating system..."
+sudo yum update -y
+
+echo "📦 Install Grafana manually..."
+sudo yum install -y https://dl.grafana.com/grafana-enterprise/release/13.0.1/grafana-enterprise_13.0.1_24542347077_linux_amd64.rpm
+
+echo "Start Grafana"
+sudo systemctl daemon-reload
+sudo systemctl start grafana-server
+sudo systemctl enable grafana-server
+
+echo "Check status ... "
+sudo systemctl status grafana-server
+```
+
+---
+
+- **Install Node Exporter**
+
+```bash
+#!/bin/bash
+
+set -e
+
+NODE_EXPORTER_VERSION="1.10.2"
+
+echo "🔄 Updating system..."
+sudo yum update -y
+
+echo "⬇️ Downloading Node Exporter..."
+cd /tmp
+wget https://github.com/prometheus/node_exporter/releases/download/v1.10.2/node_exporter-1.10.2.linux-amd64.tar.gz
+
+echo "📦 Extracting..."
+tar -xvf node_exporter-1.10.2.linux-amd64.tar.gz
+
+cd node_exporter-1.10.2.linux-amd64
+
+echo "🚚 Installing binary..."
+sudo cp node_exporter /usr/local/bin/
+
+echo "👤 Creating user..."
+sudo useradd --no-create-home --shell /bin/false node_exporter || true
+
+echo "🧩 Creating systemd service..."
+sudo tee /etc/systemd/system/node_exporter.service > /dev/null <<EOF
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+ExecStart=/usr/local/bin/node_exporter
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "🔄 Reloading systemd..."
+sudo systemctl daemon-reload
+
+echo "🚀 Starting Node Exporter..."
+sudo systemctl start node_exporter
+sudo systemctl enable node_exporter
+
+echo "📊 Checking status..."
+sudo systemctl status node_exporter --no-pager
+
+echo ""
+echo "✅ Node Exporter is running at: http://<EC2-IP>:9100/metrics"
+
+```
+
+---
+
+- **Configure the node exporter as a Prometheus target**
+  - Now to scrape the node_exporter lets instruct the prometheus by making a minor change in prometheus.yml file
+  - So go to etc/prometheus and open prometheus.yml
+    - cd /etc/prometheus
+    - sudo vim prometheus.yml
+  - Now in static_configs in your configuration file replace the target line with below one
+    - targets: ['localhost:9090','localhost:9100']
+  - Now restart the Prometheus
+    - sudo systemctl restart prometheus
