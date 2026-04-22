@@ -6,3 +6,8 @@
     - Makes it more cost effective and performant
   - Configuration and query language similar to prometheus.
     - we need to install agent in the server that is promtail, Fluentd, Logstash.
+
+- A typical Loki-based logging stack consists of 3 components:
+  - Agent (Grafana Alloy)
+  - Loki
+  - Grafana
